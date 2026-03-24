@@ -4,13 +4,15 @@ class User {
     public $db;
 
     public function __construct(DBController $db) {
-        if(!isset($db->con)) return null;
         $this->db = $db;
     }
 
     public function getUserData($email) {
-        if($email != null) {
+        if($email != null && $this->db->con != null) {
             $result = $this->db->con->query("SELECT * FROM `users` where `email`= '$email'");
+            if($result === false){
+                return array();
+            }
     
             $userArray = array();
     
@@ -23,8 +25,11 @@ class User {
     }
 
     public function loginUser($email, $password){
-        if($email != null && $password != null) {
+        if($email != null && $password != null && $this->db->con != null) {
             $result = $this->db->con->query("SELECT * from `users` where `email` = '$email'");
+            if($result === false){
+                return false;
+            }
             $count = mysqli_num_rows($result);
             if($count>0){
                 while($row = mysqli_fetch_array($result, MYSQLI_ASSOC)) {
@@ -43,7 +48,7 @@ class User {
     }
 
     public function updateInfo($fname, $lname, $email, $gender) {
-        if(isset($fname) && isset($lname) && isset($email) && isset($gender)){
+        if(isset($fname) && isset($lname) && isset($email) && isset($gender) && $this->db->con != null){
             $result = $this->db->con->query("UPDATE `users` SET `first_name` = '$fname', `last_name` = '$lname', `gender` = '$gender' WHERE `users`.`email` = '$email'");
 
             if($result) {
@@ -53,7 +58,7 @@ class User {
     }
 
     public function updateMobile($mobile, $email) {
-        if(isset($mobile) && isset($email)){
+        if(isset($mobile) && isset($email) && $this->db->con != null){
             $result = $this->db->con->query("UPDATE `users` SET `mobile` = '$mobile' WHERE `users`.`email` = '$email'");
 
             if($result) {
