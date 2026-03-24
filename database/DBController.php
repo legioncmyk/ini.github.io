@@ -9,10 +9,13 @@ class DBController {
     public $con = null;
 
     public function __construct() {
-        $this-> con = mysqli_connect($this->host, $this->user, $this->password, $this->database);
-        
-        if($this->con->connect_error){
-            echo "Fail to connect: ".$this->con->connect_error;
+        mysqli_report(MYSQLI_REPORT_OFF);
+        $this->con = @mysqli_connect($this->host, $this->user, $this->password, $this->database);
+
+        if($this->con === false){
+            $error = mysqli_connect_error();
+            error_log("Fail to connect: " . $error);
+            $this->con = null;
         }
         // echo "Connection Success";
     }
@@ -23,8 +26,8 @@ class DBController {
 
     function closeConnection() {
         if($this->con != null){
-            $this-> con -> close();
-            $this-> con = null;
+            $this->con->close();
+            $this->con = null;
         }
     }
 }

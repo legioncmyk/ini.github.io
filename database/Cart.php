@@ -4,7 +4,6 @@ class Cart {
     public $db = null;
 
     public function __construct(DBController $db) {
-        if(!isset($db->con)) return null;
         $this->db = $db;
     }
 
@@ -62,9 +61,11 @@ class Cart {
                 // header("Location:".$_SERVER['PHP_SELF']);
                 echo "<script>location.href = $location; </script>";
             }
-            echo $this->db->con->error;
+            if($result === false){
+                error_log($this->db->con->error);
+            }
         }
-        return $result;
+        return $result ?? false;
     }
 
     public function saveForLater($user_id = null, $product_id = null, $saveToTable = 'save_for_later', $fromTable = 'cart') {
@@ -78,7 +79,7 @@ class Cart {
                 echo "<script>location.href = 'cart.php'; </script>";
             }
         }
-        return $result;
+        return $result ?? false;
     }
 
 
@@ -105,9 +106,12 @@ class Cart {
 
     // most important function
     public function getData($userid, $table = 'cart') {
-        if(isset($userid)){
+        if(isset($userid) && $this->db->con != null){
             $result = $this->db->con->query("SELECT * FROM {$table} where `user_id` = {$userid}");
-            echo $this->db->con->error;
+            if($result === false){
+                error_log($this->db->con->error);
+                return array();
+            }
             $resultArray = array();
 
             while($row = mysqli_fetch_array($result, MYSQLI_ASSOC)){
@@ -115,6 +119,7 @@ class Cart {
             }
             return $resultArray;
         }
+        return array();
     }
 
 
@@ -141,7 +146,7 @@ class Cart {
 
 
     public function placeOrder($user_id = null, $product_ids) {
-        if($product_ids != null){
+        if($product_ids != null && $this->db->con != null){
 
             foreach($product_ids as $product_id) {
                 $query = "INSERT INTO `orders` (`user_id`,`product_id`,`product_img`,`product_img_alt`,`product_title`,`product_color`,`product_seller`,`product_price`) SELECT `cart`.`user_id`, `cart`.`product_id`, `products`.`product_img`,`products`.`product_img_alt`,`products`.`product_title`, `products`.`product_color`, `products`.`product_seller`, `products`.`product_price` FROM `cart`, `products` WHERE `cart`.`user_id` = '$user_id' AND `cart`.`product_id` = '$product_id' AND `products`.`product_id` = `cart`.`product_id`";
@@ -164,8 +169,9 @@ class Cart {
                 }
             }
       
-            return $result;
+            return $result ?? false;
         }
+        return false;
     }
 
 
