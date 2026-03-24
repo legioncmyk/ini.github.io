@@ -4,12 +4,18 @@ class Product {
     public $db = null;
 
     public function __construct(DBController $db) {
-        if(!isset($db->con)) return null;
         $this->db = $db;
     }
 
     public function getData($table = 'products'){
+        if($this->db->con == null){
+            return array();
+        }
+
         $result = $this->db->con->query("SELECT * FROM {$table}");
+        if($result === false){
+            return array();
+        }
 
         $resultArray = array();
 
@@ -21,8 +27,11 @@ class Product {
     }
 
     public function getProducts($productid = null, $table = 'products') {
-        if(isset($productid)){
+        if(isset($productid) && $this->db->con != null){
             $result = $this->db->con->query("SELECT * FROM {$table} where product_id = {$productid}");
+            if($result === false){
+                return array();
+            }
 
             $resultArray = array();
 
@@ -35,10 +44,13 @@ class Product {
     }
 
     public function searchProducts($search) {
-        if($search != null) {
+        if($search != null && $this->db->con != null) {
             // $result = $this->db->con->query("SELECT * FROM `products` WHERE `product_title` LIKE '%$search%'");
             $query = "SELECT * FROM `products` WHERE MATCH (`product_title`) AGAINST ('$search')";
             $result = $this->db->con->query($query);
+            if($result === false){
+                return array();
+            }
             // echo $query;
             $resultArray = array();
 
